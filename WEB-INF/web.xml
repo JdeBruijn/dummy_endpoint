@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app>
+		<display-name>End Point requests history</display-name>
+		<welcome-file-list>
+				<welcome-file>/index.jsp</welcome-file>
+		</welcome-file-list>
+
+		 <servlet>
+				<servlet-name>Endpoint</servlet-name>
+				<servlet-class>endpoint.Endpoint</servlet-class>
+		</servlet>
+		<servlet-mapping>
+				<servlet-name>Endpoint</servlet-name>
+				<url-pattern>/endpoint/*</url-pattern>
+		</servlet-mapping>
+</web-app>
+
