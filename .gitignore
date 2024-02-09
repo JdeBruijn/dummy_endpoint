@@ -4,4 +4,4 @@
 # Log file
 *.log
 
-
+saved_requests/*
