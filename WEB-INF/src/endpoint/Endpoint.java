@@ -25,10 +25,9 @@ import java.util.Enumeration;
 
 import java.lang.Math;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpSession;
@@ -44,55 +43,55 @@ public class Endpoint extends HttpServlet
 	private static final String class_name="Endpoint";
 	private static final Logger log = Logger.getLogger(class_name);
 
-	
+
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 	{
-		
 		returnData(false, null, resp, "Invalid method.");
 		return;
-
 	}//doGet().
 
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 	{
 		Enumeration<String> req_header_names = req.getHeaderNames();
-		JSONObject headers_json = new JSONObject();
+		JsonObject headers_json = new JsonObject();
 		while(req_header_names.hasMoreElements())
 		{
 			String name = req_header_names.nextElement();
 			String header = req.getHeader(name);
-			headers_json.put(name, header);
+			headers_json.addProperty(name, header);
 		}//while().
 
 		log.info(class_name+".doPost(): headers = "+headers_json.toString());//debug**
 
-		JSONObject body = null;
+		JsonElement body = null;
 		try
 		{
-			InputStreamReader part_reader = new InputStreamReader(req.getInputStream());
-			JSONParser parser = new JSONParser();
-			body = (JSONObject) parser.parse(part_reader);
+			body = StaticStuff.inputStreamToJson(req.getInputStream());
 		}//try
-		catch(IOException | ParseException pe)
+		catch(IOException ioe)
 		{
-			body = new JSONObject();
-			log.severe(class_name+" Exception while trying to read request body:\n"+pe); 
-			//returnData(false, null, resp, "Failed to extract request body");
-			//return;
+			log.severe(class_name+" IO Exception while trying to ready request body:\n"+ioe);
+		}//catch().
+		catch(CustomException ce)
+		{
+			ce.writeLog(log);
 		}//catch().
 
 		log.info(class_name+".doPost(): body = "+body.toString());//debug**
 
-		JSONObject all_data = new JSONObject();
-		all_data.put("headers",headers_json);
-		all_data.put("body",body);
+		JsonObject all_data = new JsonObject();
+		all_data.add("headers",headers_json);
+		if(body!=null)
+		{all_data.add("body",body);}
+		else
+		{all_data.add("body", new JsonObject());}
 
 		String file_name = "/var/lib/tomcat/webapps/dummy_endpoint/saved_requests/"+StaticStuff.getUTCDateString()+".json";
 
 		StaticStuff.writeToFile(all_data.toString(),file_name);
 
 
-		if( body==null || body.size()<=0)
+		if( body==null || body.isJsonNull())
 		{
 			returnData(false, null, resp, "No data found in request body.");
 			return;
@@ -102,16 +101,16 @@ public class Endpoint extends HttpServlet
 	}//doPost().
 
 
-	private void returnData(boolean success, JSONObject json_data, HttpServletResponse resp, String message)
+	private void returnData(boolean success, JsonObject json_data, HttpServletResponse resp, String message)
 	{
 		if(json_data==null)
-		{json_data = new JSONObject();}
+		{json_data = new JsonObject();}
 
 		if(message==null)
 		{message="";}
 
-		json_data.put("success", success);
-		json_data.put("message",message);
+		json_data.addProperty("success", success);
+		json_data.addProperty("message",message);
 		
 		try
 		{

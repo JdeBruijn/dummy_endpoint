@@ -45,9 +45,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonParseException;
 
 import java.text.SimpleDateFormat;
 
@@ -189,7 +191,7 @@ public class StaticStuff
 
 //Example method call: StaticStuff.basicRequestReturn(bool, "", null, resp, class_name);      
 //Just a useful generic method to return a response to a http request.
-	public static void basicRequestReturn(boolean success, String message, JSONObject json_data, HttpServletResponse resp, String origin_class_name)
+	public static void basicRequestReturn(boolean success, String message, JsonObject json_data, HttpServletResponse resp, String origin_class_name)
 	{
 		if(!success)
 		{
@@ -201,10 +203,10 @@ public class StaticStuff
 		}//if.
 
 		if(json_data==null)
-		{json_data = new JSONObject();}
+		{json_data = new JsonObject();}
 
-		json_data.put("success", success);
-		json_data.put("message", message);
+		json_data.addProperty("success", success);
+		json_data.addProperty("message", message);
 
 		System.out.println(class_name+" basicRequestReturn():\n\torigin_class = "+origin_class_name+"\n\t json_data="+json_data.toString());//debug**
 		try
@@ -233,33 +235,32 @@ public class StaticStuff
 		return true;
 	}//validSession().*/
 
-	public static JSONObject inputStreamToJSON(InputStream input) throws CustomException
+	public static JsonElement inputStreamToJson(InputStream input) throws CustomException
 	{
 		try
 		{
 			InputStreamReader reader = new InputStreamReader(input);
-			JSONParser parser = new JSONParser();
-			JSONObject json = (JSONObject)parser.parse(reader);
+			JsonElement json = JsonParser.parseReader(reader);
 			return json;
 		}//try
-		catch(ParseException | IOException ioe)
+		catch(JsonParseException jpe)
 		{
-			throw new CustomException(CustomException.SEVERE, class_name, "Trying to get JSON from InputStream",ioe);
+			throw new CustomException(CustomException.SEVERE, class_name, "Trying to get Json from InputStream",jpe);
 		}//catch.
 
-	}//inputStreamToJSON().
+	}//inputStreamToJson().
 
 
-	public static JSONObject makeJSONObject(HashMap<String, String> map)
+	public static JsonObject makeJsonObject(HashMap<String, String> map)
 	{
-		JSONObject json = new JSONObject();
+		JsonObject json = new JsonObject();
 		Set<String> keys = map.keySet();
 		for(String key: keys)
 		{
-			json.put(key, map.get(key));
+			json.addProperty(key, map.get(key));
 		}//for(key).
 		return json;
-	}//makeJSONObject().
+	}//makeJsonObject().
 
 	public static String inputStreamToString(InputStream input) throws CustomException
 	{
